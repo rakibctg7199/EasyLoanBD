@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyLoanBD Dashboard</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f5f5f5;
+    }
+    header {
+      background: purple;
+      color: white;
+      padding: 10px;
+    }
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      background: #5c2d91;
+      color: white;
+      cursor: pointer;
+    }
+    #dashboard {
+      margin-top: 20px;
+    }
+    input {
+      display: block;
+      margin: 10px auto;
+      padding: 10px;
+      width: 80%;
+      max-width: 300px;
+    }
+    #forms > div {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>EasyLoanBD</h1>
+    <button onclick="showForm('signup')">Sign Up</button>
+    <button onclick="showForm('signin')">Sign In</button>
+  </header>
+
+  <main id="dashboard">
+    <h2>আপনার পছন্দের লোন যাচাই করুন</h2>
+    <div id="loan-options">
+      <button onclick="selectLoan(5000)">লোন ১</button>
+      <button onclick="selectLoan(10000)">লোন ২</button>
+      <button onclick="selectLoan(15000)">লোন ৩</button>
+      <button onclick="selectLoan(20000)">লোন ৪</button>
+      <button onclick="selectLoan(25000)">লোন ৫</button>
+      <button onclick="selectLoan(30000)">লোন ৬</button>
+    </div>
+    <div>
+      <p>ধার নেয়া হচ্ছে: <span id="loanAmount">0</span> টাকা</p>
+    </div>
+    <div id="duration-buttons">
+      <button onclick="selectDuration(3)">৩ মাস</button>
+      <button onclick="selectDuration(6)">৬ মাস</button>
+      <button onclick="selectDuration(9)">৯ মাস</button>
+      <button onclick="selectDuration(12)">১২ মাস</button>
+    </div>
+    <p>মোট ফেরত দিতে হবে: <span id="totalRepay">0</span> টাকা</p>
+    
+    
+    <input type="text" placeholder="আপনার মোবাইল নম্বর লিখুন" class="input-field" id="userPhone" />
+    <input type="text" placeholder="আপনার NID নাম্বার লিখুন" class="input-field" id="nidNumber" />
+    <select id="paymentMethod" class="input-field">
+      <option value="">পেমেন্ট মেথড বাছাই করুন</option>
+      <option value="bkash">bKash</option>
+      <option value="rocket">Rocket</option>
+      <option value="nagad">Nagad</option>
+    </select>
+    <div style="margin-top: 10px;">
+      <button onclick="applyLoan()">Apply</button>
+    </div>
+
+  </main>
+
+  <div id="forms" style="display:none;">
+    <div id="signupForm" style="display:none;">
+      <h2>রেজিস্টার করুন</h2>
+      <input type="text" id="signupUsername" placeholder="ইউজারনেম (ডিজিট সহ)">
+      <input type="text" id="signupPhone" placeholder="১১ ডিজিট মোবাইল নম্বর">
+      <input type="password" id="signupPassword" placeholder="৬ ডিজিট পাসওয়ার্ড">
+      <button onclick="registerUser()">Sign Up</button>
+    </div>
+
+    <div id="signinForm" style="display:none;">
+      <h2>লগইন করুন</h2>
+      <input type="text" id="signinPhone" placeholder="মোবাইল নম্বর">
+      <input type="password" id="signinPassword" placeholder="পাসওয়ার্ড">
+      <button onclick="loginUser()">Sign In</button>
+    </div>
+
+    <div id="depositForm" style="display:none;">
+      <h2>ডিপোজিট করুন</h2>
+      <p>01979448661 নম্বরে টাকা পাঠান</p>
+      <p>আপনার ডিপোজিট এমাউন্ট: <span id="depositAmount">0</span> টাকা</p>
+      <input type="text" id="trxID" placeholder="TRX ID দিন">
+      <input type="text" id="nid" placeholder="জাতীয় পরিচয়পত্র নম্বর দিন">
+      <button onclick="submitDeposit()">সাবমিট</button>
+    </div>
+  </div>
+
+  <script>
+    let selectedLoan = 0;
+    let selectedDuration = 0;
+
+    function selectLoan(amount) {
+      selectedLoan = amount;
+      document.getElementById("loanAmount").innerText = amount;
+      updateTotal();
+      updateDepositAmount();
+    }
+
+    function selectDuration(months) {
+      selectedDuration = months;
+      updateTotal();
+    }
+
+    function updateTotal() {
+      if (selectedLoan && selectedDuration) {
+        const total = selectedLoan + (selectedLoan * 0.02 * selectedDuration);
+        document.getElementById("totalRepay").innerText = total.toFixed(2);
+      }
+    }
+
+    function updateDepositAmount() {
+      const deposit = selectedLoan / 10;
+      document.getElementById("depositAmount").innerText = deposit.toFixed(0);
+    }
+
+    function showForm(form) {
+      document.getElementById("forms").style.display = "block";
+      document.getElementById("signupForm").style.display = form === "signup" ? "block" : "none";
+      document.getElementById("signinForm").style.display = form === "signin" ? "block" : "none";
+      document.getElementById("depositForm").style.display = "none";
+    }
+
+    function applyLoan() {
+      if (!localStorage.getItem("signedIn")) {
+        alert("Sign In করতে হবে আগে!");
+        return;
+      }
+      if (!selectedLoan || !selectedDuration) {
+        alert("দয়া করে লোন এমাউন্ট এবং সময়সীমা নির্বাচন করুন");
+        return;
+      }
+      document.getElementById("forms").style.display = "block";
+      document.getElementById("depositForm").style.display = "block";
+      updateDepositAmount();
+    }
+
+    function registerUser() {
+      const phone = document.getElementById("signupPhone").value;
+      const pass = document.getElementById("signupPassword").value;
+      const user = document.getElementById("signupUsername").value;
+
+      if (!/\d/.test(user)) return alert("ইউজারনেমে অন্তত ১টি ডিজিট থাকতে হবে");
+      if (!/^\d{11}$/.test(phone)) return alert("১১ ডিজিট মোবাইল নম্বর দিন");
+      if (!/^\d{6}$/.test(pass)) return alert("৬ ডিজিট পাসওয়ার্ড দিন");
+      if (localStorage.getItem(phone)) return alert("এই নম্বরে ইতিমধ্যেই রেজিস্ট্রেশন হয়েছে");
+
+      localStorage.setItem(phone, JSON.stringify({ user, pass }));
+      alert("রেজিস্ট্রেশন সফল হয়েছে!");
+    }
+
+    function loginUser() {
+      const phone = document.getElementById("signinPhone").value;
+      const pass = document.getElementById("signinPassword").value;
+      const data = localStorage.getItem(phone);
+      if (!data) return alert("নম্বর খুঁজে পাওয়া যায়নি");
+      const parsed = JSON.parse(data);
+      if (parsed.pass !== pass) return alert("পাসওয়ার্ড মিলছে না");
+      localStorage.setItem("signedIn", phone);
+      alert("লগইন সফল");
+    }
+
+    function submitDeposit() {
+      const trx = document.getElementById("trxID").value;
+      const nid = document.getElementById("nid").value;
+      if (!trx) return alert("TRX ID দিন");
+      if (!nid) return alert("জাতীয় পরিচয়পত্র নম্বর দিন");
+      alert("আবেদন গ্রহণ করা হয়েছে! যাচাইয়ের পর যোগাযোগ করা হবে।");
+    }
+  </script>
+</body>
+</html>
